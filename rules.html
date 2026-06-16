@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>振替ルール ガイド</title>
+<style>
+  :root{
+    --navy-deep:#0F1F3D;--navy:#1B3563;--gold:#C9A24B;
+    --text:#1C2A44;--sub:#5A6A85;--white:#fff;--soft:#F7F9FC;--zebra:#F8FAFC;
+    --rule:#D8E0EC;--rule2:#E3E8F0;
+    --ok:#3E7B4F;--ok-bg:#EFF6EE;--ng:#B25B4C;
+    --font:-apple-system,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font);color:var(--text);background:#222b3d;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  #stage{
+    position:relative;width:96vw;max-width:1100px;aspect-ratio:960/540;
+    background:var(--white);box-shadow:0 18px 50px rgba(0,0,0,.45);
+    border-radius:6px;overflow:hidden;
+  }
+  .slide{
+    position:absolute;inset:0;display:none;flex-direction:column;
+    padding:6.4%;font-size:calc(0.95vw + 9px);
+  }
+  .slide.active{display:flex;}
+
+  .eyebrow{font-size:.82em;font-weight:700;letter-spacing:.14em;color:var(--gold);margin-bottom:.5em;}
+  .heading{font-size:1.9em;font-weight:700;color:var(--navy);line-height:1.2;}
+  .goldrule{width:56px;height:2px;background:var(--gold);margin:.55em 0 1.0em;}
+  .lead{font-size:1.12em;color:var(--sub);font-weight:500;line-height:1.55;}
+  .body{font-size:1.08em;line-height:1.7;}
+  .small{font-size:.8em;color:var(--sub);}
+  strong{color:var(--navy);}
+
+  /* 表紙 */
+  .cover{background:linear-gradient(135deg,var(--navy-deep),var(--navy));color:#fff;justify-content:center;padding:8%;}
+  .cover .kicker{font-size:.95em;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:1em;}
+  .cover h1{font-size:2.7em;font-weight:700;line-height:1.25;}
+  .cover .goldline{width:84px;height:3px;background:var(--gold);margin:.9em 0 1em;}
+  .cover .sub{font-size:1.15em;color:#D7E0F0;font-weight:500;line-height:1.6;}
+  .cover .date{margin-top:1.5em;font-size:.95em;color:#A9B8D6;letter-spacing:.05em;}
+  .cover .pageno{color:#8FA0C2;}
+
+  /* 6チェック一覧 */
+  .checks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.9em;flex:1;align-content:center;}
+  .chk{background:var(--soft);border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:4px;padding:.9em 1em;display:flex;gap:.7em;align-items:flex-start;}
+  .chk .b{flex:none;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.95em;}
+  .chk .t{font-weight:700;color:var(--navy);font-size:1.0em;line-height:1.3;}
+  .chk .d{font-size:.82em;color:var(--text);line-height:1.45;margin-top:.15em;}
+
+  /* ルール詳細スライド */
+  .rule-top{display:flex;align-items:center;gap:.85em;margin-bottom:.1em;}
+  .rule-no{flex:none;width:48px;height:48px;border-radius:50%;
+    background:linear-gradient(150deg,var(--navy),var(--navy-deep));color:#fff;
+    font-weight:700;font-size:1.25em;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 10px rgba(15,31,61,.28);
+    border:1.5px solid rgba(201,162,75,.55);}
+  .rule-cat{font-size:.82em;font-weight:700;letter-spacing:.14em;color:var(--gold);margin-bottom:.12em;}
+  .rule-title{font-size:1.7em;font-weight:700;color:var(--navy);line-height:1.18;letter-spacing:.005em;}
+  .panel{background:var(--soft);border:1px solid var(--rule);border-radius:6px;padding:1.0em 1.2em;margin-top:1.0em;font-size:1.1em;line-height:1.7;}
+  .panel.big{font-size:1.22em;border:1px solid var(--rule);border-top:3px solid var(--navy);
+    background:linear-gradient(180deg,#fff,var(--soft));
+    box-shadow:0 2px 10px rgba(27,53,99,.05);padding:1.05em 1.3em;}
+  .resp{display:flex;gap:1.1em;margin-top:1.1em;flex-wrap:wrap;align-items:stretch;}
+  .resp .box{flex:1;min-width:200px;border-radius:6px;padding:.9em 1.15em;font-size:1.0em;line-height:1.6;
+    display:flex;flex-direction:column;justify-content:center;}
+  .resp .ng{background:#FBF1EE;border:1px solid #E7CFC8;border-left:4px solid var(--ng);}
+  .resp .ok{background:var(--ok-bg);border:1px solid #C9E0CC;border-left:4px solid var(--ok);}
+  .resp .lab{display:block;font-size:.76em;font-weight:700;letter-spacing:.06em;margin-bottom:.32em;
+    text-transform:none;}
+  .resp .ng .lab{color:var(--ng);}
+  .resp .ok .lab{color:var(--ok);}
+  .point{margin-top:auto;font-size:.9em;color:var(--sub);background:#fff8ec;border:1px solid #e8d6a8;border-left:4px solid var(--gold);border-radius:5px;padding:.75em 1.05em;line-height:1.6;}
+  .point b{color:#8A6A1E;}
+  /* ルール詳細スライド：説明パネルはコンパクトにし、赤/緑ボックスを縦に伸ばして
+     中央の空きを埋める。黄色の注記は赤/緑から離して下部へ置く（スライド9と同じバランス） */
+  .rule-slide{justify-content:flex-start;}
+  .rule-slide .goldrule{margin:.5em 0 0;}
+  .rule-slide .panel.big{margin-top:.85em;font-size:1.05em;padding:.9em 1.2em;}
+  .rule-slide .resp{margin-top:1em;flex:1 1 auto;align-items:stretch;}
+  .rule-slide .resp .box{justify-content:center;}
+  .rule-slide .point{margin-top:1.1em;margin-bottom:.1em;}
+
+  /* 表 */
+  table{width:100%;border-collapse:collapse;font-size:.82em;}
+  thead th{background:var(--navy);color:#fff;font-weight:700;text-align:left;padding:.6em .8em;border-bottom:2px solid var(--gold);}
+  tbody td{padding:.5em .8em;border-bottom:1px solid var(--rule2);line-height:1.45;vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--zebra);}
+  td.k{font-weight:600;color:var(--navy);}
+  tr.okrow{background:var(--ok-bg)!important;}
+  tr.okrow td.k{color:var(--ok);}
+  .pill{display:inline-block;font-size:.82em;font-weight:700;padding:1px 8px;border-radius:999px;margin-right:6px;}
+  .pill-ok{background:var(--ok);color:#fff;}
+  .pill-ng{background:#E4E8F0;color:var(--sub);}
+
+  /* 入力制限の2カラム */
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:1.2em;flex:1;align-content:start;margin-top:.4em;}
+  .col-card{background:var(--soft);border:1px solid var(--rule);border-top:3px solid var(--navy);border-radius:4px;padding:1.0em 1.2em;}
+  .col-card .ct{font-weight:700;color:var(--navy);font-size:1.1em;margin-bottom:.5em;}
+  .col-card ul{list-style:none;}
+  .col-card li{font-size:.92em;line-height:1.5;padding-left:1.1em;position:relative;margin-bottom:.5em;}
+  .col-card li::before{content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--gold);}
+
+  .pageno{position:absolute;right:3.2%;bottom:3.0%;font-size:.78em;color:var(--sub);font-weight:600;}
+
+  #nav{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;background:rgba(15,31,61,.92);padding:8px 14px;border-radius:30px;box-shadow:0 6px 20px rgba(0,0,0,.35);}
+  #nav button{border:none;background:var(--gold);color:#0F1F3D;font-weight:700;font-family:var(--font);font-size:14px;padding:7px 16px;border-radius:20px;cursor:pointer;}
+  #nav button:disabled{background:#5A6A85;color:#cfd6e4;cursor:default;}
+  #nav .counter{color:#fff;font-size:14px;font-weight:600;min-width:62px;text-align:center;letter-spacing:.05em;}
+
+  @media print{
+    body{background:#fff;display:block;}
+    #nav{display:none;}
+    #stage{width:100%;max-width:none;box-shadow:none;border-radius:0;aspect-ratio:auto;}
+    .slide{display:flex !important;position:relative;inset:auto;width:100%;height:100vh;page-break-after:always;font-size:15px;}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">振替・欠席 自動返信システム</div>
+    <h1>振替ルール ガイド</h1>
+    <div class="goldline"></div>
+    <div class="sub">どんなときに振替できる？ — 受付の判断基準を、わかりやすく。</div>
+    <div class="date">2026年6月 ／ Five Keys</div>
+    <div class="pageno">1 / 11</div>
+  </section>
+
+  <!-- 2 全体像 -->
+  <section class="slide">
+    <div class="eyebrow">OVERVIEW</div>
+    <div class="heading">振替は「6つのチェック」で判定します</div>
+    <div class="goldrule"></div>
+    <div class="lead" style="margin-bottom:.8em;">次の6つをすべて満たしたときだけ「受付OK」。1つでも外れると、その内容に応じた返信をします。</div>
+    <div class="checks">
+      <div class="chk"><div class="b">1</div><div><div class="t">回数</div><div class="d">上限6回まで</div></div></div>
+      <div class="chk"><div class="b">2</div><div><div class="t">期間</div><div class="d">欠席日から2週間以内</div></div></div>
+      <div class="chk"><div class="b">3</div><div><div class="t">受付時期</div><div class="d">授業の1ヶ月前から</div></div></div>
+      <div class="chk"><div class="b">4</div><div><div class="t">曜日</div><div class="d">火〜土（日・月は不可）</div></div></div>
+      <div class="chk"><div class="b">5</div><div><div class="t">定員</div><div class="d">空きがあること</div></div></div>
+      <div class="chk"><div class="b">6</div><div><div class="t">クラス</div><div class="d">マスタークラスは対象外</div></div></div>
+    </div>
+    <div class="pageno">2 / 11</div>
+  </section>
+
+  <!-- 3 ルール1 回数 -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">1</div><div><div class="rule-cat">RULE ─ 回数</div><div class="rule-title">振替できるのは「上限6回」まで</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">振替の回数が <strong>6回に達している</strong> 生徒は、それ以上は振替できません。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">7回目以降</span>受付できない旨を返信します。</div>
+      <div class="box ok"><span class="lab">5回目まで</span>他の条件を満たせば受付します。</div>
+    </div>
+    <div class="point"><b>ワンポイント</b>　回数は<strong>年度ごと</strong>に数えます（タスクに「26年度 振替○回目」と表示されます）。台帳で自動カウントされるため、手で数える必要はありません。</div>
+    <div class="pageno">3 / 11</div>
+  </section>
+
+  <!-- 4 ルール2 期間 -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">2</div><div><div class="rule-cat">RULE ─ 期間</div><div class="rule-title">振替先は「欠席日から2週間以内」</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">振替先の日が、欠席する日から <strong>2週間（14日）を超えている</strong> 場合は振替できません。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">2週間より先</span>受付できない旨を返信します。</div>
+      <div class="box ok"><span class="lab">2週間以内</span>他の条件を満たせば受付します。</div>
+    </div>
+    <div class="point"><b>例</b>　4/15(水)を欠席 → 振替先は <strong>4/29 ごろまで</strong>。それより先の日は選べません。</div>
+    <div class="pageno">4 / 11</div>
+  </section>
+
+  <!-- 5 ルール3 受付時期 -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">3</div><div><div class="rule-cat">RULE ─ 受付時期</div><div class="rule-title">申込は「授業の1ヶ月前」から</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">欠席する授業日が <strong>今日から1ヶ月以上先</strong> の場合は、まだ受付期間に入っていないため受付できません。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">1ヶ月以上先</span>「まだ受付できない」旨を返信します。</div>
+      <div class="box ok"><span class="lab">1ヶ月以内</span>受付期間に入っているので受付します。</div>
+    </div>
+    <div class="point"><b>ポイント</b>　判断するのは「<strong>欠席する日</strong>」までの距離です。振替先（行く日）は1ヶ月以上先でも問題ありません。</div>
+    <div class="pageno">5 / 11</div>
+  </section>
+
+  <!-- 6 ルール4 曜日 -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">4</div><div><div class="rule-cat">RULE ─ 曜日</div><div class="rule-title">振替先に「日曜・月曜」は選べません</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">日曜・月曜は <strong>コーチの休講日</strong> のため、振替先には指定できません。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">日曜・月曜を希望</span>火〜土での再提出をお願いする返信をします。</div>
+      <div class="box ok"><span class="lab">火〜土を希望</span>他の条件を満たせば受付します。</div>
+    </div>
+    <div class="point"><b>補足</b>　システム自体も日・月は稼働していません（稼働は火〜土）。</div>
+    <div class="pageno">6 / 11</div>
+  </section>
+
+  <!-- 7 ルール5 定員 -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">5</div><div><div class="rule-cat">RULE ─ 定員</div><div class="rule-title">希望日が「満席」なら受付できません</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">振替先に希望した日が <strong>定員いっぱい</strong> の場合は、その日への振替はできません。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">満席</span>受付できない旨を返信します。</div>
+      <div class="box ok"><span class="lab">空きあり</span>他の条件を満たせば受付します。</div>
+    </div>
+    <div class="point"><b>ワンポイント</b>　空席は台帳で自動的に確認します。満席のときは、別の日で再度ご連絡いただきます。</div>
+    <div class="pageno">7 / 11</div>
+  </section>
+
+  <!-- 8 ルール6 クラス -->
+  <section class="slide rule-slide">
+    <div class="rule-top"><div class="rule-no">6</div><div><div class="rule-cat">RULE ─ クラス</div><div class="rule-title">マスタークラスは「振替の対象外」</div></div></div>
+    <div class="goldrule"></div>
+    <div class="panel big">マスタークラスの生徒は、振替制度の <strong>対象外</strong> です。</div>
+    <div class="resp">
+      <div class="box ng"><span class="lab">マスタークラス</span>振替の対象外であることを案内します。</div>
+      <div class="box ok"><span class="lab">通常クラス（A〜G）</span>これまでの6つのルールで判定します。</div>
+    </div>
+    <div class="point"><b>補足</b>　フォームでも、マスタークラスには「振替」の選択肢が表示されない仕組みです。</div>
+    <div class="pageno">8 / 11</div>
+  </section>
+
+  <!-- 9 フォーム入力での制限 -->
+  <section class="slide">
+    <div class="eyebrow">INPUT</div>
+    <div class="heading">入力の時点で、ミスを防ぐ仕組み</div>
+    <div class="goldrule"></div>
+    <div class="lead" style="margin-bottom:.4em;">フォームの日付入力では、選べる範囲があらかじめ決まっています。</div>
+    <div class="twocol">
+      <div class="col-card">
+        <div class="ct">振替元（欠席する日）</div>
+        <ul>
+          <li>過去2週間〜1ヶ月先まで選べる</li>
+          <li>日曜・月曜を選ぶとエラーで止まる</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <div class="ct">振替先（行きたい日）</div>
+        <ul>
+          <li>明日以降のみ選べる（任意・空欄も可）</li>
+          <li>日曜・月曜を選ぶとエラーで止まる</li>
+        </ul>
+      </div>
+    </div>
+    <div class="point" style="margin-top:1em;"><b>ねらい</b>　受付できない日付は<strong>入力の段階でブロック</strong>。保護者の入力ミスと、やり取りの往復を減らします。</div>
+    <div class="pageno">9 / 11</div>
+  </section>
+
+  <!-- 10 当日・欠席・遅刻 -->
+  <section class="slide">
+    <div class="eyebrow">OTHER</div>
+    <div class="heading">当日連絡・欠席・遅刻の扱い</div>
+    <div class="goldrule"></div>
+    <table>
+      <thead><tr><th style="width:32%;">連絡の種類</th><th>システムの対応</th></tr></thead>
+      <tbody>
+        <tr><td class="k">当日の連絡</td><td>体調不良などの事情があるため、当日でも受付して記録します（以前の「当日は不可」ルールは廃止しました）。</td></tr>
+        <tr><td class="k">欠席</td><td>欠席として記録し、保護者へ確認の返信をします。理由（備考）も台帳に転記します。</td></tr>
+        <tr><td class="k">遅刻</td><td>遅刻として記録します。</td></tr>
+      </tbody>
+    </table>
+    <div class="point" style="margin-top:1em;"><b>補足</b>　欠席・遅刻は「振替」ではないため、上の6つのルール判定は行いません。</div>
+    <div class="pageno">10 / 11</div>
+  </section>
+
+  <!-- 11 早見表 -->
+  <section class="slide">
+    <div class="eyebrow">SUMMARY</div>
+    <div class="heading">振替ルール 早見表</div>
+    <div class="goldrule" style="margin-bottom:.6em;"></div>
+    <table>
+      <thead><tr><th style="width:50%;">どんなとき</th><th>システムの対応</th></tr></thead>
+      <tbody>
+        <tr class="okrow"><td class="k"><span class="pill pill-ok">OK</span>6つのルールをすべて満たす</td><td>振替を受付・承認の返信をする</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">不可</span>振替回数が上限の6回に達した</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">不可</span>振替先が欠席日から2週間を超える</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">不可</span>欠席する授業日が1ヶ月以上先</td><td>まだ受付できない旨を返信する</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">再提出</span>振替先が日曜・月曜</td><td>火〜土での再提出を依頼する</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">不可</span>振替先がその日満席</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k"><span class="pill pill-ng">対象外</span>マスタークラス</td><td>振替の対象外として案内する</td></tr>
+      </tbody>
+    </table>
+    <div class="pageno">11 / 11</div>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button id="prev">前へ</button>
+  <span class="counter" id="counter">1 / 11</span>
+  <button id="next">次へ</button>
+</div>
+
+<script>
+  var slides=document.querySelectorAll('.slide');
+  var total=slides.length;
+  var idx=0;
+  var counter=document.getElementById('counter');
+  var prevBtn=document.getElementById('prev');
+  var nextBtn=document.getElementById('next');
+  function show(n){
+    if(n<0)n=0;
+    if(n>total-1)n=total-1;
+    slides[idx].classList.remove('active');
+    idx=n;
+    slides[idx].classList.add('active');
+    counter.textContent=(idx+1)+' / '+total;
+    prevBtn.disabled=(idx===0);
+    nextBtn.disabled=(idx===total-1);
+  }
+  nextBtn.addEventListener('click',function(){show(idx+1);});
+  prevBtn.addEventListener('click',function(){show(idx-1);});
+  document.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'||k===' '){e.preventDefault();show(idx+1);}
+    else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();show(idx-1);}
+  });
+  show(0);
+</script>
+</body>
+</html>
