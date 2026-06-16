@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>振替・欠席 自動返信システム ご紹介</title>
+<style>
+  :root{
+    --navy-deep:#0F1F3D;
+    --navy:#1B3563;
+    --gold:#C9A24B;
+    --text:#1C2A44;
+    --sub:#5A6A85;
+    --white:#FFFFFF;
+    --soft:#F7F9FC;
+    --zebra:#F8FAFC;
+    --rule:#D8E0EC;
+    --rule2:#E3E8F0;
+    --font:-apple-system,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font);
+    color:var(--text);
+    background:#222b3d;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* スライドの土台：960×540比率を保つ */
+  #stage{
+    position:relative;
+    width:96vw;
+    max-width:1100px;
+    aspect-ratio:960/540;
+    background:var(--white);
+    box-shadow:0 18px 50px rgba(0,0,0,.45);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .slide{
+    position:absolute;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    padding:7.5%;
+    /* 比率基準でフォントを伸縮（960px時に概ね指定px） */
+    font-size:calc(0.96vw + 9px);
+  }
+  .slide.active{display:flex;}
+
+  /* ===== 見出し ===== */
+  .heading{
+    font-size:2.0em;
+    font-weight:700;
+    color:var(--navy);
+    line-height:1.2;
+    margin-bottom:.15em;
+  }
+  .goldrule{
+    width:56px;height:2px;background:var(--gold);
+    margin-top:.55em;margin-bottom:1.1em;
+  }
+  .lead{
+    font-size:1.16em;
+    color:var(--sub);
+    font-weight:500;
+    line-height:1.55;
+    margin-bottom:1.1em;
+  }
+  .body{font-size:1.16em;line-height:1.7;}
+  .small{font-size:.78em;color:var(--sub);}
+
+  /* ===== 表紙・クロージング ===== */
+  .cover{
+    background:linear-gradient(135deg,var(--navy-deep),var(--navy));
+    color:var(--white);
+    justify-content:center;
+    padding:8.1%;
+  }
+  .cover .kicker{
+    display:inline-flex;align-items:center;gap:.6em;
+    font-size:.95em;letter-spacing:.18em;color:var(--gold);font-weight:600;
+    margin-bottom:1.1em;
+  }
+  .cover .kicker::before{content:"";width:40px;height:2px;background:var(--gold);}
+  .cover h1{
+    font-size:2.9em;font-weight:700;line-height:1.22;letter-spacing:.01em;
+  }
+  .cover .goldline{width:84px;height:3px;background:var(--gold);margin:.9em 0 1.1em;}
+  .cover .sub{font-size:1.18em;color:#D7E0F0;font-weight:500;line-height:1.6;max-width:88%;}
+  .cover .date{margin-top:1.6em;font-size:1.0em;color:#A9B8D6;letter-spacing:.05em;}
+
+  /* ===== カード ===== */
+  .card{
+    background:var(--soft);
+    border:1px solid var(--rule);
+    border-top:3px solid var(--navy);
+    border-radius:4px;
+    padding:1.0em 1.1em;
+  }
+  .card .ct{font-weight:700;color:var(--navy);font-size:1.08em;margin-bottom:.4em;}
+  .card .cb{font-size:.95em;color:var(--text);line-height:1.6;}
+
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:1.6em;flex:1;}
+  .col-tag{
+    display:inline-block;font-size:.8em;font-weight:700;letter-spacing:.08em;
+    padding:.25em .8em;border-radius:3px;margin-bottom:.7em;
+  }
+  .tag-before{background:#EAE0CE;color:#8A6A1E;}
+  .tag-after{background:var(--navy);color:#fff;}
+  .col-card{
+    flex:1;background:var(--soft);border:1px solid var(--rule);
+    border-top:3px solid var(--navy);border-radius:4px;padding:1.2em 1.3em;
+    display:flex;flex-direction:column;
+  }
+  .col-card ul{list-style:none;margin-top:.2em;}
+  .col-card li{
+    font-size:1.0em;line-height:1.55;padding-left:1.2em;position:relative;margin-bottom:.55em;
+  }
+  .col-card li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--gold);}
+
+  /* ===== 4カードグリッド ===== */
+  .grid4{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1.2em;flex:1;}
+  .feat{
+    background:var(--soft);border:1px solid var(--rule);border-top:3px solid var(--navy);
+    border-radius:4px;padding:1.0em 1.2em;display:flex;gap:.9em;align-items:flex-start;
+  }
+  .badge{
+    flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;
+    font-weight:700;font-size:1.05em;display:flex;align-items:center;justify-content:center;
+  }
+  .feat .ft{font-weight:700;color:var(--navy);font-size:1.05em;margin-bottom:.25em;}
+  .feat .fb{font-size:.92em;color:var(--text);line-height:1.5;}
+
+  /* ===== フロー ===== */
+  .flow{display:flex;align-items:stretch;gap:12px;flex:1;}
+  .step{
+    flex:1;background:var(--soft);border:1px solid var(--rule);border-top:3px solid var(--navy);
+    border-radius:4px;padding:1.0em .9em;display:flex;flex-direction:column;gap:.55em;
+  }
+  .step .badge{margin-bottom:.2em;}
+  .step .st{font-weight:700;color:var(--navy);font-size:1.0em;line-height:1.35;}
+  .step .sb{font-size:.86em;color:var(--text);line-height:1.5;}
+  .arrow{display:flex;align-items:center;color:var(--navy);font-size:1.7em;font-weight:700;}
+
+  /* ===== 表 ===== */
+  table{width:100%;border-collapse:collapse;font-size:1.0em;}
+  thead th{
+    background:var(--navy);color:#fff;font-weight:700;text-align:left;
+    padding:.7em .9em;border-bottom:2px solid var(--gold);
+  }
+  tbody td{padding:.62em .9em;border-bottom:1px solid var(--rule2);line-height:1.5;vertical-align:top;}
+  tbody tr:nth-child(even){background:var(--zebra);}
+  td.k{font-weight:600;color:var(--navy);width:42%;}
+  .rules-table tbody td{padding:.5em .9em;}
+
+  /* ===== 吹き出し（例） ===== */
+  .examples{display:grid;grid-template-columns:1fr 1fr;gap:1.6em;flex:1;align-content:start;}
+  .ex-block .ex-label{font-size:.92em;font-weight:700;color:var(--navy);margin-bottom:.6em;}
+  .bubble{
+    position:relative;background:var(--soft);border:1px solid var(--rule);border-radius:10px;
+    padding:1.0em 1.2em;font-size:1.0em;line-height:1.65;color:var(--text);
+  }
+  .bubble::after{
+    content:"";position:absolute;left:28px;bottom:-11px;width:20px;height:20px;
+    background:var(--soft);border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    transform:rotate(45deg);
+  }
+  .task-card{
+    background:#fff;border:1px solid var(--rule);border-left:4px solid var(--gold);border-radius:4px;
+    padding:1.0em 1.2em;font-size:1.0em;line-height:1.7;
+  }
+  .task-card .tk{color:var(--sub);font-size:.85em;}
+  .note{margin-top:auto;font-size:.78em;color:var(--sub);padding-top:1em;}
+
+  /* ===== まとめポイント ===== */
+  .points{display:grid;grid-template-columns:1fr 1fr;gap:1.3em;flex:1;align-content:center;}
+  .pt{
+    background:var(--soft);border:1px solid var(--rule);border-top:3px solid var(--navy);
+    border-radius:4px;padding:1.2em 1.4em;display:flex;gap:1em;align-items:center;
+  }
+  .pt .pnum{
+    flex:none;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;
+    font-weight:700;display:flex;align-items:center;justify-content:center;font-size:1.0em;
+  }
+  .pt .ptt{font-weight:700;color:var(--navy);font-size:1.1em;}
+  .pt .ptb{font-size:.88em;color:var(--text);margin-top:.15em;line-height:1.45;}
+
+  /* ===== ページ番号 ===== */
+  .pageno{
+    position:absolute;right:3.2%;bottom:3.2%;font-size:.8em;color:var(--sub);font-weight:600;
+  }
+  .cover .pageno{color:#8FA0C2;}
+
+  /* ===== ナビ ===== */
+  #nav{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    display:flex;align-items:center;gap:14px;
+    background:rgba(15,31,61,.92);padding:8px 14px;border-radius:30px;
+    box-shadow:0 6px 20px rgba(0,0,0,.35);
+  }
+  #nav button{
+    border:none;background:var(--gold);color:#0F1F3D;font-weight:700;
+    font-family:var(--font);font-size:14px;padding:7px 16px;border-radius:20px;cursor:pointer;
+  }
+  #nav button:disabled{background:#5A6A85;color:#cfd6e4;cursor:default;}
+  #nav .counter{color:#fff;font-size:14px;font-weight:600;min-width:62px;text-align:center;letter-spacing:.05em;}
+
+  @media print{
+    body{background:#fff;display:block;}
+    #nav{display:none;}
+    #stage{
+      width:100%;max-width:none;box-shadow:none;border-radius:0;aspect-ratio:auto;
+    }
+    .slide{
+      display:flex !important;position:relative;inset:auto;
+      width:100%;height:100vh;page-break-after:always;
+      font-size:16px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- 1 表紙 -->
+  <section class="slide cover active">
+    <div class="kicker">振替・欠席 自動返信システム</div>
+    <h1>振替・欠席 自動返信システム<br>ご紹介</h1>
+    <div class="goldline"></div>
+    <div class="sub">Chatwork × 入力フォームで、振替連絡の返信を自動化</div>
+    <div class="date">2026年6月</div>
+    <div class="pageno">1 / 12</div>
+  </section>
+
+  <!-- 2 これは何？ -->
+  <section class="slide">
+    <div class="heading">これは何？</div>
+    <div class="goldrule"></div>
+    <div class="lead">保護者から届く「授業の振替・欠席・遅刻」の連絡に、システムが自動で返信します。</div>
+    <div class="body">
+      これまで手作業だった次の流れを、まるごと自動化します。
+    </div>
+    <div class="flow" style="flex:none;margin-top:1.1em;">
+      <div class="step"><div class="badge">1</div><div class="st">生徒を特定</div><div class="sb">だれの連絡かを探す</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">2</div><div class="st">ルールを確認</div><div class="sb">振替できるか判定</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">3</div><div class="st">返信する</div><div class="sb">文面を作って送信</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">4</div><div class="st">記録する</div><div class="sb">台帳に書き込む</div></div>
+    </div>
+    <div class="body" style="margin-top:1.2em;">
+      コーチの返信の負担を減らし、<strong>対応漏れ・返信ミスを防ぎます。</strong>
+    </div>
+    <div class="pageno">2 / 12</div>
+  </section>
+
+  <!-- 3 Before/After -->
+  <section class="slide">
+    <div class="heading">これまでの課題 → 導入後</div>
+    <div class="goldrule"></div>
+    <div class="twocol">
+      <div class="col-card">
+        <span class="col-tag tag-before">これまで（Before）</span>
+        <ul>
+          <li>連絡のたびに、コーチが手作業で生徒を探す</li>
+          <li>振替回数・期限を一件ずつ確認する</li>
+          <li>返信の文面を自分で考えて送る</li>
+          <li>台帳（カルテメモ）に手で記入する</li>
+          <li>時間がかかり、抜け漏れも起きやすい</li>
+        </ul>
+      </div>
+      <div class="col-card">
+        <span class="col-tag tag-after">導入後（After）</span>
+        <ul>
+          <li>保護者がフォームに入力するだけ</li>
+          <li>生徒の特定・ルール判定を自動で実施</li>
+          <li>Chatworkへ自動で返信</li>
+          <li>台帳への記入も自動</li>
+          <li>コーチへのタスク作成まで自動</li>
+        </ul>
+      </div>
+    </div>
+    <div class="pageno">3 / 12</div>
+  </section>
+
+  <!-- 4 全体の流れ -->
+  <section class="slide">
+    <div class="heading">全体の流れ</div>
+    <div class="goldrule"></div>
+    <div class="flow">
+      <div class="step"><div class="badge">1</div><div class="st">保護者が入力</div><div class="sb">入力フォームに連絡内容を入れる（スマホ・PC対応）</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">2</div><div class="st">自動で処理</div><div class="sb">生徒の特定／ルール判定／台帳への記録を自動実行</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">3</div><div class="st">自動で返信</div><div class="sb">Chatworkへ返信し、コーチへタスクを作成</div></div>
+      <div class="arrow">→</div>
+      <div class="step"><div class="badge">4</div><div class="st">通知が届く</div><div class="sb">保護者・コーチの双方に通知が届く</div></div>
+    </div>
+    <div class="body" style="flex:none;margin-top:1.2em;color:var(--sub);font-size:1.0em;">
+      保護者は入力するだけ。あとはシステムが順番に進めてくれます。
+    </div>
+    <div class="pageno">4 / 12</div>
+  </section>
+
+  <!-- 5 入力フォーム -->
+  <section class="slide">
+    <div class="heading">保護者が使う入力フォーム</div>
+    <div class="goldrule"></div>
+    <table>
+      <thead><tr><th style="width:34%;">入力項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td class="k">塾生氏名</td><td>姓・名を「ひらがな」で入力</td></tr>
+        <tr><td class="k">担当コーチ</td><td>一覧から選択</td></tr>
+        <tr><td class="k">連絡内容</td><td>振替・欠席・遅刻から選択</td></tr>
+        <tr><td class="k">振替元の授業日</td><td>カレンダーから選択</td></tr>
+        <tr><td class="k">振替先の希望日</td><td>振替のときのみ・任意で入力</td></tr>
+        <tr><td class="k">その他備考</td><td>伝えたいことを自由に記入</td></tr>
+      </tbody>
+    </table>
+    <div class="body" style="flex:none;margin-top:1.1em;font-size:1.0em;color:var(--sub);">
+      スマホ・PCの両方に対応。日曜・月曜や受付期間外の日付は、その場でエラーが出て止まるため、入力ミスを防げます。
+    </div>
+    <div class="pageno">5 / 12</div>
+  </section>
+
+  <!-- 6 4カード -->
+  <section class="slide">
+    <div class="heading">システムが自動でやってくれること</div>
+    <div class="goldrule"></div>
+    <div class="grid4">
+      <div class="feat"><div class="badge">1</div><div><div class="ft">生徒の自動特定</div><div class="fb">入力された氏名から、対象の生徒を自動で見つけます。</div></div></div>
+      <div class="feat"><div class="badge">2</div><div><div class="ft">振替ルールの自動判定</div><div class="fb">回数や期限などのルールに合っているかを自動で確認します。</div></div></div>
+      <div class="feat"><div class="badge">3</div><div><div class="ft">Chatworkへ自動返信</div><div class="fb">受付できたかどうかを、保護者へ自動で返信します。</div></div></div>
+      <div class="feat"><div class="badge">4</div><div><div class="ft">台帳へ記入＋タスク通知</div><div class="fb">台帳（カルテメモ）へ自動記入し、コーチへタスクを通知します。</div></div></div>
+    </div>
+    <div class="pageno">6 / 12</div>
+  </section>
+
+  <!-- 7 ルール表 -->
+  <section class="slide">
+    <div class="heading">振替ルールの自動判定</div>
+    <div class="goldrule" style="margin-bottom:.7em;"></div>
+    <table class="rules-table" style="font-size:.88em;">
+      <thead><tr><th style="width:50%;">どんなとき</th><th>システムの対応</th></tr></thead>
+      <tbody>
+        <tr><td class="k">ルールをすべて満たしている</td><td>振替を受付・承認の返信をする</td></tr>
+        <tr><td class="k">振替回数が上限の6回に達した</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k">振替先が振替元から2週間を超えている</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k">受付期間外（欠席する授業日が1ヶ月以上先）</td><td>まだ受付できない旨を返信する</td></tr>
+        <tr><td class="k">振替先が日曜・月曜（コーチの休講日）</td><td>火〜土での再提出を依頼する</td></tr>
+        <tr><td class="k">その日が定員満杯</td><td>受付できない旨を返信する</td></tr>
+        <tr><td class="k">マスタークラスの場合</td><td>振替の対象外として案内する</td></tr>
+      </tbody>
+    </table>
+    <div class="pageno">7 / 12</div>
+  </section>
+
+  <!-- 8 例 -->
+  <section class="slide">
+    <div class="heading">自動返信＆タスクの例</div>
+    <div class="goldrule"></div>
+    <div class="examples">
+      <div class="ex-block">
+        <div class="ex-label">保護者へのChatwork返信</div>
+        <div class="bubble">
+          〇〇さん、振替を承りました。<br>
+          <strong>4/15(水) → 4/18(土)</strong> で受付しました。
+        </div>
+      </div>
+      <div class="ex-block">
+        <div class="ex-label">コーチへ作られるタスク</div>
+        <div class="task-card">
+          <div class="tk">対象</div>〇〇さん<br>
+          <div class="tk" style="margin-top:.4em;">内容</div>26年度 振替1回目<br>
+          <div class="tk" style="margin-top:.4em;">日程</div>4/15(水) → 4/18(土)
+        </div>
+      </div>
+    </div>
+    <div class="note">※ 実際の文面はイメージです。状況に応じて内容は変わります。</div>
+    <div class="pageno">8 / 12</div>
+  </section>
+
+  <!-- 9 稼働時間 -->
+  <section class="slide">
+    <div class="heading">稼働時間・対応グループ</div>
+    <div class="goldrule"></div>
+    <table>
+      <thead><tr><th style="width:34%;">項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td class="k">稼働する曜日</td><td>火〜土（日・月は稼働しません）</td></tr>
+        <tr><td class="k">稼働する時間</td><td>12:00〜21:30</td></tr>
+        <tr><td class="k">授業中の自動送信</td><td>授業中（火〜金 17:20〜20:40・土 14:00〜17:00）は自動送信を控えます</td></tr>
+        <tr><td class="k">対象グループ</td><td>MA・G・D・F（今後、順次拡大予定）</td></tr>
+      </tbody>
+    </table>
+    <div class="body" style="flex:none;margin-top:1.1em;font-size:1.0em;color:var(--sub);">
+      授業に集中できるよう、授業時間帯は通知を控える設計になっています。
+    </div>
+    <div class="pageno">9 / 12</div>
+  </section>
+
+  <!-- 10 困ったとき -->
+  <section class="slide">
+    <div class="heading">運用で困ったときは</div>
+    <div class="goldrule"></div>
+    <table>
+      <thead><tr><th style="width:50%;">こんな様子が見えたら</th><th>どうする</th></tr></thead>
+      <tbody>
+        <tr><td class="k">未読がたまっている</td><td>まず担当者（システム管理者）に連絡する</td></tr>
+        <tr><td class="k">返信が止まったように見える</td><td>自分で操作せず、管理者に連絡する</td></tr>
+        <tr><td class="k">動きを試してみたい</td><td>テストは「テスト専用ルーム」で行う（保護者には送られません）</td></tr>
+      </tbody>
+    </table>
+    <div class="card" style="margin-top:1.2em;border-top-color:var(--gold);">
+      <div class="ct" style="color:#8A6A1E;">困ったら、まず管理者へ</div>
+      <div class="cb">細かい復旧の操作は管理者が対応します。ご自身で危険な操作をする必要はありません。</div>
+    </div>
+    <div class="pageno">10 / 12</div>
+  </section>
+
+  <!-- 11 まとめ -->
+  <section class="slide">
+    <div class="heading">導入で得られる効果</div>
+    <div class="goldrule"></div>
+    <div class="points">
+      <div class="pt"><div class="pnum">1</div><div><div class="ptt">返信のスピードアップ</div><div class="ptb">連絡を受けたらすぐに自動で返信できます。</div></div></div>
+      <div class="pt"><div class="pnum">2</div><div><div class="ptt">対応漏れの防止</div><div class="ptb">自動で処理するので、うっかり忘れを防げます。</div></div></div>
+      <div class="pt"><div class="pnum">3</div><div><div class="ptt">記録の自動化</div><div class="ptb">台帳への記入も自動。書き忘れがなくなります。</div></div></div>
+      <div class="pt"><div class="pnum">4</div><div><div class="ptt">コーチの負担軽減</div><div class="ptb">手作業が減り、指導により集中できます。</div></div></div>
+    </div>
+    <div class="pageno">11 / 12</div>
+  </section>
+
+  <!-- 12 クロージング -->
+  <section class="slide cover">
+    <div class="kicker">Thank you</div>
+    <h1 style="font-size:2.5em;">ご質問・改善のご要望は<br>システム担当まで</h1>
+    <div class="goldline"></div>
+    <div class="sub">みなさんの声をもとに、これからも使いやすく改善していきます。</div>
+    <div class="date">振替・欠席 自動返信システム ／ 2026年6月</div>
+    <div class="pageno">12 / 12</div>
+  </section>
+
+</div>
+
+<div id="nav">
+  <button id="prev">前へ</button>
+  <span class="counter" id="counter">1 / 12</span>
+  <button id="next">次へ</button>
+</div>
+
+<script>
+  var slides=document.querySelectorAll('.slide');
+  var total=slides.length;
+  var idx=0;
+  var counter=document.getElementById('counter');
+  var prevBtn=document.getElementById('prev');
+  var nextBtn=document.getElementById('next');
+
+  function show(n){
+    if(n<0)n=0;
+    if(n>total-1)n=total-1;
+    slides[idx].classList.remove('active');
+    idx=n;
+    slides[idx].classList.add('active');
+    counter.textContent=(idx+1)+' / '+total;
+    prevBtn.disabled=(idx===0);
+    nextBtn.disabled=(idx===total-1);
+  }
+  function nextSlide(){show(idx+1);}
+  function prevSlide(){show(idx-1);}
+
+  nextBtn.addEventListener('click',nextSlide);
+  prevBtn.addEventListener('click',prevSlide);
+
+  document.addEventListener('keydown',function(e){
+    var k=e.key;
+    if(k==='ArrowRight'||k==='ArrowDown'||k===' '){e.preventDefault();nextSlide();}
+    else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();prevSlide();}
+  });
+
+  show(0);
+</script>
+</body>
+</html>
